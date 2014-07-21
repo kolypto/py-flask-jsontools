@@ -41,8 +41,7 @@ def delete_user(id):
     return {'error': 'Access denied'}, 403
 ```
 
-JsonResponse
-------------
+### JsonResponse
 
 Extends [`flask.Request`](http://flask.pocoo.org/docs/api/#incoming-request-data) and encodes the response with JSON.
 Views decorated with [`@jsonapi`](#jsonapi) return these objects.
@@ -69,6 +68,48 @@ def get_user(id):
     return list_users().get_json()[id]  # Long form
     return list_users()[id]  # Shortcut
 ```
+
+JsonExcApi
+----------
+
+Decorator base class which helps to create API views which can report errors to the client.
+
+However, it won't just magically report all exceptions: you need to override its `exception()` method and declare how errors should be formatted:
+
+```python
+
+from werkzeug.exceptions import HTTPException, NotFound
+from flask.ext.jsontools import JsonExcApi
+
+class jsonapi(JsonExcApi):
+    """ Custom @jsonapi with error formatter """
+    def exception(self, e):
+        if isinstance(e, HTTPException):
+            # Return error object, and set HTTP code by returning a tuple
+            return {'error': dict(
+                name=type(e).__name__,
+                title=e.name,
+                message=e.description
+            )}, e.code
+        elif isinstance(e, RuntimeError):
+            # Return error object, http code will be 200
+            return {'error': dict(
+                name=type(e).__name__,
+                title=type(e).__name__,
+                message=e.message
+            )}
+        # Otherwise, the error is raised
+        return None
+
+@app.route('/error')
+@jsonapi
+def error():
+    raise NotFound('Nothing found')
+```
+
+A request to `/error` will result in the following JSON response:
+    
+    {'name': 'NotFound', 'title': 'Not Found', 'message': 'Nothing'}
 
 
 
