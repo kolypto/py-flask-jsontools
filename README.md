@@ -1,13 +1,20 @@
-[![Build Status](https://api.travis-ci.org/kolypto/py-flask-jsonapi.png?branch=master)](https://travis-ci.org/kolypto/py-flask-jsonapi)
+[![Build Status](https://api.travis-ci.org/kolypto/py-flask-jsontools.png?branch=master)](https://travis-ci.org/kolypto/py-flask-jsontools)
 
 
-Flask JsonApi
-=============
+Flask JsonTools
+===============
 
 JSON API tools for Flask
 
 Table of Contents
 =================
+
+* <a href="#view-utilities">View Utilities</a>
+    * <a href="#jsonapi">@jsonapi</a>
+        * <a href="#jsonresponse">JsonResponse</a>
+        * <a href="#make_json_response">make_json_response()</a>
+    * <a href="#jsonexcapi">JsonExcApi</a>
+* <a href="#jsonclient">JsonClient</a> 
 
 View Utilities
 ==============
@@ -46,6 +53,13 @@ def delete_user(id):
 Extends [`flask.Request`](http://flask.pocoo.org/docs/api/#incoming-request-data) and encodes the response with JSON.
 Views decorated with [`@jsonapi`](#jsonapi) return these objects.
 
+Arguments:
+
+* `response`: response data
+* `status`: status code. Optional, defaults to 200
+* `headers`: additional headers dict. Optional.
+* `**kwargs`: additional argumets for [`Response`](http://flask.pocoo.org/docs/api/#response-objects)
+
 Methods:
 
 * `preprocess_response_data(response)`: Override to get custom response behavior.
@@ -68,6 +82,14 @@ def get_user(id):
     return list_users().get_json()[id]  # Long form
     return list_users()[id]  # Shortcut
 ```
+
+### make_json_response()
+Helper function that actually preprocesses view return value into [`JsonResponse`](#jsonresponse).
+
+Accepts `rv` as any of:
+
+* tuple of `(response, status[, headers])`
+* Object to encode as JSON
 
 JsonExcApi
 ----------
