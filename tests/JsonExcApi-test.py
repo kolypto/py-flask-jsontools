@@ -23,6 +23,10 @@ class jsonapi(JsonExcApi):
 
 
 class TestJsonExcApi(unittest.TestCase):
+    @jsonapi
+    def _methodView(self):
+        return {'ok': 1}
+
     def setUp(self):
         # Init app
         self.app = app = Flask(__name__)
@@ -44,6 +48,8 @@ class TestJsonExcApi(unittest.TestCase):
         def eValue():
             raise ValueError('Value')
 
+        app.route('/method')(self._methodView)
+
     def test_e404(self):
         """ Test: HttpError, formatted """
         with self.app.test_client() as c:
@@ -62,3 +68,11 @@ class TestJsonExcApi(unittest.TestCase):
         """ Test: Unknown error, passed by """
         with self.app.test_client() as c:
             self.assertRaises(ValueError, c.get, '/eValue')
+
+    @unittest.SkipTest  # FIXME: @jsonapi does not currently work with class methods! Fix it
+    def test_methodView(self):
+        """ Test: @jsonapi decorated class method """
+        with self.app.test_client() as c:
+            rv = c.get('/method')
+            self.assertEqual(rv.status_code, 200)
+            self.assertEqual(rv['ok'], 1)
