@@ -5,14 +5,9 @@ class JsonResponse(Response):
     """ Response from a JSON API view """
 
     @staticmethod
-    def _lazy_json(data):
+    def _lazy_json(data, indent=None): # CHECKME: This hack prevents Flask from providing the correct 'Content-Length' header. is it ok?
         """ Lazy iterable: jsonify() only when iterated """
-        yield ''
-        # CHECKME: This hack prevents Flask from providing the correct 'Content-Length' header. is it ok?
-        # Prepare response
-        indent = 2 if current_app.config['JSONIFY_PRETTYPRINT_REGULAR'] and not request.is_xhr else None
-        response_str = json.dumps(data, indent=indent)
-        yield response_str
+        yield json.dumps(data, indent=indent)
 
     def __init__(self, response, status=None, headers=None, **kwargs):
         """ Init a JSON response
@@ -27,7 +22,11 @@ class JsonResponse(Response):
         self._response_data = self.preprocess_response_data(response)
 
         # Init super
-        super(JsonResponse, self).__init__(self._lazy_json(self._response_data), headers=headers, status=status, mimetype='application/json', direct_passthrough=True, **kwargs)
+        indent = 2 if current_app.config['JSONIFY_PRETTYPRINT_REGULAR'] and not request.is_xhr else None
+        super(JsonResponse, self).__init__(
+            self._lazy_json(self._response_data, indent=indent),
+            headers=headers, status=status, mimetype='application/json',
+            direct_passthrough=True, **kwargs)
 
     def preprocess_response_data(self, response):
         """ Preprocess the response data.
