@@ -1,12 +1,21 @@
 |Build Status|
 
-Flask JsonApi
-=============
+Flask JsonTools
+===============
 
 JSON API tools for Flask
 
 Table of Contents
 =================
+
+-  View Utilities
+
+   -  @jsonapi
+
+      -  JsonResponse
+      -  make\_json\_response()
+
+-  FlaskJsonClient
 
 View Utilities
 ==============
@@ -50,6 +59,14 @@ Extends
 and encodes the response with JSON. Views decorated with
 ```@jsonapi`` <#jsonapi>`__ return these objects.
 
+Arguments:
+
+-  ``response``: response data
+-  ``status``: status code. Optional, defaults to 200
+-  ``headers``: additional headers dict. Optional.
+-  ``**kwargs``: additional argumets for
+   ```Response`` <http://flask.pocoo.org/docs/api/#response-objects>`__
+
 Methods:
 
 -  ``preprocess_response_data(response)``: Override to get custom
@@ -74,68 +91,32 @@ The extra methods allows to reuse views:
         return list_users().get_json()[id]  # Long form
         return list_users()[id]  # Shortcut
 
-JsonExcApi
-----------
+make\_json\_response()
+~~~~~~~~~~~~~~~~~~~~~~
 
-Decorator base class which helps to create API views which can report
-errors to the client.
+Helper function that actually preprocesses view return value into
+```JsonResponse`` <#jsonresponse>`__.
 
-However, it won't just magically report all exceptions: you need to
-override its ``exception()`` method and declare how errors should be
-formatted:
+Accepts ``rv`` as any of:
 
-.. code:: python
+-  tuple of ``(response, status[, headers])``
+-  Object to encode as JSON
 
+FlaskJsonClient
+===============
 
-    from werkzeug.exceptions import HTTPException, NotFound
-    from flask.ext.jsontools import JsonExcApi
-
-    class jsonapi(JsonExcApi):
-        """ Custom @jsonapi with error formatter """
-        def exception(self, e):
-            if isinstance(e, HTTPException):
-                # Return error object, and set HTTP code by returning a tuple
-                return {'error': dict(
-                    name=type(e).__name__,
-                    title=e.name,
-                    message=e.description
-                )}, e.code
-            elif isinstance(e, RuntimeError):
-                # Return error object, http code will be 200
-                return {'error': dict(
-                    name=type(e).__name__,
-                    title=type(e).__name__,
-                    message=e.message
-                )}
-            # Otherwise, the error is raised
-            return None
-
-    @app.route('/error')
-    @jsonapi
-    def error():
-        raise NotFound('Nothing found')
-
-A request to ``/error`` will result in the following JSON response:
-
-::
-
-    {'name': 'NotFound', 'title': 'Not Found', 'message': 'Nothing'}
-
-JsonClient
-==========
-
-JsonClient is a JSON-aware test client: it can post JSON and parse JSON
-responses into ```JsonResponse`` <#jsonresponse>`__.
+FlaskJsonClient is a JSON-aware test client: it can post JSON and parse
+JSON responses into ```JsonResponse`` <#jsonresponse>`__.
 
 .. code:: python
 
     from myapplication import Application
-    from flask.ext.jsontools import JsonClient
+    from flask.ext.jsontools import FlaskJsonClient
 
     def JsonTest(unittest.TestCase):
         def setUp(self):
             self.app = Application(__name__)
-            self.app.test_client_class = JsonClient
+            self.app.test_client_class = FlaskJsonClient
             
         def testCreateUser(self):
             with self.app.test_client() as c:
@@ -145,5 +126,5 @@ responses into ```JsonResponse`` <#jsonresponse>`__.
                 rv.get_json()['user']  # Long form for the previous
                 rv['user']  # Shortcut for the previous
 
-.. |Build Status| image:: https://api.travis-ci.org/kolypto/py-flask-jsonapi.png?branch=master
-   :target: https://travis-ci.org/kolypto/py-flask-jsonapi
+.. |Build Status| image:: https://api.travis-ci.org/kolypto/py-flask-jsontools.png?branch=master
+   :target: https://travis-ci.org/kolypto/py-flask-jsontools

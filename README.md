@@ -13,7 +13,7 @@ Table of Contents
     * <a href="#jsonapi">@jsonapi</a>
         * <a href="#jsonresponse">JsonResponse</a>
         * <a href="#make_json_response">make_json_response()</a>
-* <a href="#jsonclient">JsonClient</a> 
+* <a href="#flaskjsonclient">FlaskJsonClient</a> 
 
 View Utilities
 ==============
@@ -92,19 +92,19 @@ Accepts `rv` as any of:
 
 
 
-JsonClient
-==========
+FlaskJsonClient
+===============
 
-JsonClient is a JSON-aware test client: it can post JSON and parse JSON responses into [`JsonResponse`](#jsonresponse).
+FlaskJsonClient is a JSON-aware test client: it can post JSON and parse JSON responses into [`JsonResponse`](#jsonresponse).
 
 ```python
 from myapplication import Application
-from flask.ext.jsontools import JsonClient
+from flask.ext.jsontools import FlaskJsonClient
 
 def JsonTest(unittest.TestCase):
     def setUp(self):
         self.app = Application(__name__)
-        self.app.test_client_class = JsonClient
+        self.app.test_client_class = FlaskJsonClient
         
     def testCreateUser(self):
         with self.app.test_client() as c:

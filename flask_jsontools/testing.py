@@ -4,7 +4,7 @@ from flask.testing import FlaskClient
 from .response import JsonResponse
 
 
-class JsonClient(FlaskClient):
+class FlaskJsonClient(FlaskClient):
     """ JSON-aware test client """
 
     def open(self, path, json=None, **kwargs):
@@ -22,7 +22,7 @@ class JsonClient(FlaskClient):
             kwargs.setdefault('method', 'POST')
 
         # Request
-        rv = super(JsonClient, self).open(path, **kwargs)
+        rv = super(FlaskJsonClient, self).open(path, **kwargs)
         ':type rv: flask.Response'
 
         # Response: JSON?

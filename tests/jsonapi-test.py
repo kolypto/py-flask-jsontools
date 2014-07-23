@@ -2,7 +2,7 @@ import unittest
 from flask import Flask, request, Response
 from werkzeug.exceptions import NotFound
 
-from flask.ext.jsontools import jsonapi, JsonClient, JsonResponse, make_json_response
+from flask.ext.jsontools import jsonapi, FlaskJsonClient, JsonResponse, make_json_response
 
 
 class TestJsonApi(unittest.TestCase):
@@ -17,7 +17,7 @@ class TestJsonApi(unittest.TestCase):
         # Init app
         self.app = app = Flask(__name__)
         self.app.debug = self.app.testing = True
-        self.app.test_client_class = JsonClient
+        self.app.test_client_class = FlaskJsonClient
 
         # Views
         @app.route('/user', methods=['GET'])
