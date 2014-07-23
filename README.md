@@ -13,7 +13,6 @@ Table of Contents
     * <a href="#jsonapi">@jsonapi</a>
         * <a href="#jsonresponse">JsonResponse</a>
         * <a href="#make_json_response">make_json_response()</a>
-    * <a href="#jsonexcapi">JsonExcApi</a>
 * <a href="#jsonclient">JsonClient</a> 
 
 View Utilities
@@ -90,48 +89,6 @@ Accepts `rv` as any of:
 
 * tuple of `(response, status[, headers])`
 * Object to encode as JSON
-
-JsonExcApi
-----------
-
-Decorator base class which helps to create API views which can report errors to the client.
-
-However, it won't just magically report all exceptions: you need to override its `exception()` method and declare how errors should be formatted:
-
-```python
-
-from werkzeug.exceptions import HTTPException, NotFound
-from flask.ext.jsontools import JsonExcApi
-
-class jsonapi(JsonExcApi):
-    """ Custom @jsonapi with error formatter """
-    def exception(self, e):
-        if isinstance(e, HTTPException):
-            # Return error object, and set HTTP code by returning a tuple
-            return {'error': dict(
-                name=type(e).__name__,
-                title=e.name,
-                message=e.description
-            )}, e.code
-        elif isinstance(e, RuntimeError):
-            # Return error object, http code will be 200
-            return {'error': dict(
-                name=type(e).__name__,
-                title=type(e).__name__,
-                message=e.message
-            )}
-        # Otherwise, the error is raised
-        return None
-
-@app.route('/error')
-@jsonapi
-def error():
-    raise NotFound('Nothing found')
-```
-
-A request to `/error` will result in the following JSON response:
-    
-    {'name': 'NotFound', 'title': 'Not Found', 'message': 'Nothing'}
 
 
 
