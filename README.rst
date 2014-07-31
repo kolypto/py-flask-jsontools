@@ -16,6 +16,10 @@ Table of Contents
       -  make\_json\_response()
 
 -  FlaskJsonClient
+-  Class-Based Views
+
+   -  MethodView
+   -  RestfulView
 
 View Utilities
 ==============

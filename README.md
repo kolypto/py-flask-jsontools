@@ -13,7 +13,10 @@ Table of Contents
     * <a href="#jsonapi">@jsonapi</a>
         * <a href="#jsonresponse">JsonResponse</a>
         * <a href="#make_json_response">make_json_response()</a>
-* <a href="#flaskjsonclient">FlaskJsonClient</a> 
+* <a href="#flaskjsonclient">FlaskJsonClient</a>
+* <a href="#class-based-views">Class-Based Views</a>
+    * <a href="#methodview">MethodView</a>
+    * <a href="#restfulview">RestfulView</a> 
 
 
 
@@ -27,7 +30,7 @@ Decorate a view function that talks JSON.
 
 Such function can return:
     
-* tuples of `(response, status[, headers]): to set custom status code and optionally - headers
+* tuples of `(response, status[, headers])`: to set custom status code and optionally - headers
 * Instances of [`JsonResponse`](#jsonresponse)
 * The result of helper function [`make_json_response`](#make_json_response)
 
@@ -177,14 +180,14 @@ RestfulView
 Since `MethodView` is mostly useful to expose APIs over collections of entities, there is a RESTful helper which
 automatically decorates some special methods with `@methodview`.
 
-| View method | HTTP method | URL   |
-|-------------|-------------|-------|
-| list()      | GET         | /     |
-| create()    | PUT         | /     |
-| get()       | GET         | /<pk> |
-| replace()   | POST        | /<pk> |
-| update()    | PATCH       | /<pk> |
-| delete()    | DELETE      | /<pk> |
+| View method | HTTP method | URL     |
+|-------------|-------------|---------|
+| list()      | GET         | `/`     |
+| create()    | PUT         | `/`     |
+| get()       | GET         | `/<pk>` |
+| replace()   | POST        | `/<pk>` |
+| update()    | PATCH       | `/<pk>` |
+| delete()    | DELETE      | `/<pk>` |
 
 By subclassing `RestfulView` and implementing some of these methods, 
 you'll get a complete API endpoint with a single class.
