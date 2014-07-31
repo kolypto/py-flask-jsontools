@@ -97,6 +97,9 @@ Accepts `rv` as any of:
 
 
 
+
+
+
 FlaskJsonClient
 ===============
 
@@ -119,6 +122,78 @@ def JsonTest(unittest.TestCase):
             rv.get_json()['user']  # Long form for the previous
             rv['user']  # Shortcut for the previous
 ```
+
+
+
+
+
+Formatting Utils
+================
+
+DynamicJSONEncoder
+-----------
+
+In python, de-facto standard for encoding objects of custom classes is the `__json__()` method which returns 
+the representation of the object.
+
+`DynamicJSONEncoder` is the implementation of this protocol: if an object has the `__json__()` method, its result if used for
+the representation.
+
+You'll definitely want to subclass it to support other types, e.g. dates and times:
+
+```python
+from flask.ext.jsontools import DynamicJSONEncoder
+
+class ApiJSONEncoder(DynamicJSONEncoder):
+    def default(self, o):
+        # Custom formats
+        if isinstance(o, datetime.datetime):
+            return o.isoformat(' ')
+        if isinstance(o, datetime.date):
+            return o.isoformat()
+        if isinstance(o, set):
+            return list(o)
+        
+        # Fallback
+        return super(DynamicJSONEncoder, self).default(o)
+```
+
+Now, just install the encoder to your Flask:
+
+```python
+from flask import Flask
+
+app = Flask(__name__)
+app.json_encoder = DynamicJSONEncoder
+```
+
+
+
+JsonSerializableBase
+--------------------
+
+Serializing SqlAlchemy models to JSON is a headache: if an attribute is present on an instance, this does not mean
+it's loaded from the database.
+
+`JsonSerializableBase` is a mixin for SqlAlchemy Declarative Base that adds a magic `__json__()` method, compatible with
+[`DynamicJSONEncoder`](#dynamicjsonencoder). When serializing, it makes sure that entity serialization will *never* issue additional requests.
+
+Example:
+
+```python
+from sqlalchemy.ext.declarative import declarative_base
+from flask.ext.jsontools import JsonSerializableBase
+
+Base = declarative_base(cls=(JsonSerializableBase,))
+
+class User(Base):
+    #...
+```
+
+Now, you can safely respond with SqlAlchemy models in your JSON views, and jsontools will handle the rest :)
+
+
+
 
 
 

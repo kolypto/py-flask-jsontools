@@ -31,8 +31,8 @@ Decorate a view function that talks JSON.
 
 Such function can return:
 
--  tuples of \`(response, status[, headers]): to set custom status code
-   and optionally - headers
+-  tuples of ``(response, status[, headers])``: to set custom status
+   code and optionally - headers
 -  Instances of ```JsonResponse`` <#jsonresponse>`__
 -  The result of helper function
    ```make_json_response`` <#make_json_response>`__
@@ -130,6 +130,77 @@ JSON responses into ```JsonResponse`` <#jsonresponse>`__.
                 rv.get_json()['user']  # Long form for the previous
                 rv['user']  # Shortcut for the previous
 
+Formatting Utils
+================
+
+DynamicJSONEncoder
+------------------
+
+In python, de-facto standard for encoding objects of custom classes is
+the ``__json__()`` method which returns the representation of the
+object.
+
+``DynamicJSONEncoder`` is the implementation of this protocol: if an
+object has the ``__json__()`` method, its result if used for the
+representation.
+
+You'll definitely want to subclass it to support other types, e.g. dates
+and times:
+
+.. code:: python
+
+    from flask.ext.jsontools import DynamicJSONEncoder
+
+    class ApiJSONEncoder(DynamicJSONEncoder):
+        def default(self, o):
+            # Custom formats
+            if isinstance(o, datetime.datetime):
+                return o.isoformat(' ')
+            if isinstance(o, datetime.date):
+                return o.isoformat()
+            if isinstance(o, set):
+                return list(o)
+            
+            # Fallback
+            return super(DynamicJSONEncoder, self).default(o)
+
+Now, just install the encoder to your Flask:
+
+.. code:: python
+
+    from flask import Flask
+
+    app = Flask(__name__)
+    app.json_encoder = DynamicJSONEncoder
+
+JsonSerializableBase
+--------------------
+
+Serializing SqlAlchemy models to JSON is a headache: if an attribute is
+present on an instance, this does not mean it's loaded from the
+database.
+
+``JsonSerializableBase`` is a mixin for SqlAlchemy Declarative Base that
+adds a magic ``__json__()`` method, compatible with
+```DynamicJSONEncoder`` <#dynamicjsonencoder>`__. When serializing, it
+makes sure that entity serialization will *never* issue additional
+requests.
+
+Example:
+
+.. code:: python
+
+    from sqlalchemy.ext.declarative import declarative_base
+    from flask.ext.jsontools import JsonSerializableBase
+
+    Base = declarative_base(cls=(JsonSerializableBase,))
+
+    class User(Base):
+        #...
+
+Now, you can safely respond with SqlAlchemy models in your JSON views,
+and jsontools will handle the rest :)
+
 Class-Based Views
 =================
 
@@ -195,21 +266,21 @@ Since ``MethodView`` is mostly useful to expose APIs over collections of
 entities, there is a RESTful helper which automatically decorates some
 special methods with ``@methodview``.
 
-+---------------+---------------+-------+
-| View method   | HTTP method   | URL   |
-+===============+===============+=======+
-| list()        | GET           | /     |
-+---------------+---------------+-------+
-| create()      | PUT           | /     |
-+---------------+---------------+-------+
-| get()         | GET           | /     |
-+---------------+---------------+-------+
-| replace()     | POST          | /     |
-+---------------+---------------+-------+
-| update()      | PATCH         | /     |
-+---------------+---------------+-------+
-| delete()      | DELETE        | /     |
-+---------------+---------------+-------+
++---------------+---------------+-------------+
+| View method   | HTTP method   | URL         |
++===============+===============+=============+
+| list()        | GET           | ``/``       |
++---------------+---------------+-------------+
+| create()      | PUT           | ``/``       |
++---------------+---------------+-------------+
+| get()         | GET           | ``/<pk>``   |
++---------------+---------------+-------------+
+| replace()     | POST          | ``/<pk>``   |
++---------------+---------------+-------------+
+| update()      | PATCH         | ``/<pk>``   |
++---------------+---------------+-------------+
+| delete()      | DELETE        | ``/<pk>``   |
++---------------+---------------+-------------+
 
 By subclassing ``RestfulView`` and implementing some of these methods,
 you'll get a complete API endpoint with a single class.
