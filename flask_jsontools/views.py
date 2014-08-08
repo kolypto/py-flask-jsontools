@@ -179,7 +179,7 @@ class RestfulViewType(MethodViewType):
                     setattr(cls, view_name, view)
 
         # Proceed
-        return super(RestfulViewType, cls).__init__(name, bases, d)
+        super(RestfulViewType, cls).__init__(name, bases, d)
 
 
 class RestfulView(with_metaclass(RestfulViewType, MethodView)):
