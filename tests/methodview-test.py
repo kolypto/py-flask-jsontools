@@ -36,7 +36,6 @@ class CrudView(MethodView):
 class RestView(RestfulView):
 
     decorators = (jsonapi,)
-    primary_key = ('id',)
 
     def list(self): return [1,2,3]
     def create(self): return 'ok'
@@ -55,8 +54,8 @@ class RestView(RestfulView):
 
 
 class RestViewSubclass(RestView):
-
-    custom2 = None
+    primary_key = ('id',)
+    custom2 = None  # override
 
 
 

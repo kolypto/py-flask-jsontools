@@ -1,3 +1,4 @@
+import inspect
 from collections import defaultdict
 from flask.views import View, with_metaclass
 from flask import request
@@ -24,7 +25,12 @@ class _MethodViewInfo(object):
 
     def decorator(self, func):
         """ Wrapper function to decorate a function """
-        func._methodview = self
+        if inspect.isfunction(func):
+            func._methodview = self
+        elif inspect.ismethod(func):
+            func.__func__._methodview = self
+        else:
+            raise AssertionError('Can only decorate function and methods, {} given'.format(func))
         return func
 
     @classmethod
@@ -68,24 +74,13 @@ class _MethodViewInfo(object):
 class MethodViewType(type):
     """ Metaclass that collects methods decorated with @methodview """
 
-    def __new__(cls, name, bases, d):
-        rv = type.__new__(cls, name, bases, d)
-
+    def __init__(cls, name, bases, d):
         # Prepare
-        methods = set(rv.methods or [])
+        methods = set(cls.methods or [])
         methods_map = defaultdict(dict)
 
-        # Inherit maps from parent classes
-        for b in bases:
-            try:
-                if b.methods:
-                    methods |= set(b.methods)
-                methods_map.update(b.methods_map or {})
-            except AttributeError:
-                pass
-
         # Methods
-        for view_name, func in d.items():
+        for view_name, func in inspect.getmembers(cls):
             # Collect methods decorated with methodview()
             info = _MethodViewInfo.get_info(func)
             if info is not None:
@@ -95,17 +90,15 @@ class MethodViewType(type):
                     methods.add(method)
             else:
                 # Not a view
-                if view_name in methods:
-                    # Remove it from inherited mappings (in case it became None)
-                    methods.remove(view_name)
-                    del methods_map[view_name]
+                # Remove it from inherited mappings (in case it became None, but was callable)
+                for _ in methods_map.values():
+                    methods_map.pop(view_name, None)
                 continue
 
 
         # Finish
-        rv.methods = tuple(sorted(methods))  # ('GET', ... )
-        rv.methods_map = dict(methods_map)  # { 'GET': {'get': _MethodViewInfo } }
-        return rv
+        cls.methods = tuple(sorted(methods_map.keys()))  # ('GET', ... )
+        cls.methods_map = dict(methods_map)  # { 'GET': {'get': _MethodViewInfo } }
 
 
 class MethodView(with_metaclass(MethodViewType, View)):
@@ -122,9 +115,9 @@ class MethodView(with_metaclass(MethodViewType, View)):
         method = method.upper()
         route_params = frozenset(k for k, v in route_params.items() if v is not None)
 
-        for name, info in self.methods_map[method].items():
+        for view_name, info in self.methods_map[method].items():
             if info.matches(method, route_params):
-                return getattr(self, name)
+                return getattr(self, view_name)
         else:
             return None
 
@@ -138,7 +131,7 @@ class MethodView(with_metaclass(MethodViewType, View)):
     def route_as_view(cls, app, name, rules, *class_args, **class_kwargs):
         """ Register the view with an URL route
         :param app: Flask application
-        :type app: flask.Flask
+        :type app: flask.Flask|flask.Blueprint
         :param name: Unique view name
         :type name: str
         :param rules: List of route rules to use
@@ -168,23 +161,25 @@ class RestfulViewType(MethodViewType):
         'delete':  (True,  'DELETE'),
     }
 
-    def __new__(cls, name, bases, d):
-        pk = d.get('primary_key', ())
+    def __init__(cls, name, bases, d):
+        pk = getattr(cls, 'primary_key', ())
+        mcs = type(cls)
 
         if pk:
-            # Automatically decorate the existing methods
-            found_methods = False
-            for view_name, (needs_pk, method) in cls.methods_map.items():
-                if view_name in d and callable(d[view_name]):  # method exists and is callable
-                    found_methods = True
-                    d[view_name] = methodview(
+            # Walk through known REST methods
+            for view_name, (needs_pk, method) in mcs.methods_map.items():
+                view = getattr(cls, view_name, None)
+                if callable(view):  # method exists and is callable
+                    # Automatically decorate it with @methodview() and conditions on PK
+                    view = methodview(
                         method,
                         ifnset=None if needs_pk else pk,
                         ifset=pk if needs_pk else None,
-                    )(d[view_name])
+                    )(view)
+                    setattr(cls, view_name, view)
 
         # Proceed
-        return super(RestfulViewType, cls).__new__(cls, name, bases, d)
+        return super(RestfulViewType, cls).__init__(name, bases, d)
 
 
 class RestfulView(with_metaclass(RestfulViewType, MethodView)):
