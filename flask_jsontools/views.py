@@ -155,7 +155,7 @@ class RestfulViewType(MethodViewType):
         # Automatically decorate the existing methods
         found_methods = False
         for view_name, (needs_pk, method) in cls.methods_map.items():
-            if view_name in d:
+            if view_name in d and callable(d[view_name]):  # method exists and is callable
                 found_methods = True
                 d[view_name] = methodview(
                     method,
