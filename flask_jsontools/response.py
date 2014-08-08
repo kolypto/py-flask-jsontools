@@ -21,8 +21,13 @@ class JsonResponse(Response):
         # Store response
         self._response_data = self.preprocess_response_data(response)
 
+        # PrettyPrint?
+        try:
+            indent = 2 if current_app.config['JSONIFY_PRETTYPRINT_REGULAR'] and not request.is_xhr else None
+        except RuntimeError:  # "RuntimeError: working outside of application context"
+            indent = None
+
         # Init super
-        indent = 2 if current_app.config['JSONIFY_PRETTYPRINT_REGULAR'] and not request.is_xhr else None
         super(JsonResponse, self).__init__(
             self._lazy_json(self._response_data, indent=indent),
             headers=headers, status=status, mimetype='application/json',
