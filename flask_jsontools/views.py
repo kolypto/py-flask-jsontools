@@ -152,20 +152,17 @@ class RestfulViewType(MethodViewType):
     def __new__(cls, name, bases, d):
         pk = d.get('primary_key', ())
 
-        # Automatically decorate the existing methods
-        found_methods = False
-        for view_name, (needs_pk, method) in cls.methods_map.items():
-            if view_name in d and callable(d[view_name]):  # method exists and is callable
-                found_methods = True
-                d[view_name] = methodview(
-                    method,
-                    ifnset=None if needs_pk else pk,
-                    ifset=pk if needs_pk else None,
-                )(d[view_name])
-
-        if found_methods:
-            assert pk, 'Primary key for RestfulView "{}" should be defined'.format(name)
-            assert isinstance(pk, (list, tuple)), 'Primary key for RestfulView "{}" should be iterable'.format(name)
+        if pk:
+            # Automatically decorate the existing methods
+            found_methods = False
+            for view_name, (needs_pk, method) in cls.methods_map.items():
+                if view_name in d and callable(d[view_name]):  # method exists and is callable
+                    found_methods = True
+                    d[view_name] = methodview(
+                        method,
+                        ifnset=None if needs_pk else pk,
+                        ifset=pk if needs_pk else None,
+                    )(d[view_name])
 
         # Proceed
         return super(RestfulViewType, cls).__new__(cls, name, bases, d)
