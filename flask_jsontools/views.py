@@ -71,20 +71,39 @@ class MethodViewType(type):
     def __new__(cls, name, bases, d):
         rv = type.__new__(cls, name, bases, d)
 
-        # Methods
-        view_methods = set(rv.methods or [])
+        # Prepare
+        methods = set(rv.methods or [])
         methods_map = defaultdict(dict)
-        for name, func in d.items():
-            # Collect methods decorated with method()
+
+        # Inherit maps from parent classes
+        for b in bases:
+            try:
+                if b.methods:
+                    methods |= set(b.methods)
+                methods_map.update(b.methods_map or {})
+            except AttributeError:
+                pass
+
+        # Methods
+        for view_name, func in d.items():
+            # Collect methods decorated with methodview()
             info = _MethodViewInfo.get_info(func)
-            if name.startswith('_') or info is None:
+            if info is not None:
+                # @methodview-decorated view
+                for method in info.methods:
+                    methods_map[method][view_name] = info
+                    methods.add(method)
+            else:
+                # Not a view
+                if view_name in methods:
+                    # Remove it from inherited mappings (in case it became None)
+                    methods.remove(view_name)
+                    del methods_map[view_name]
                 continue
-            for method in info.methods:
-                methods_map[method][name] = info
-                view_methods.add(method)
+
 
         # Finish
-        rv.methods = tuple(sorted(view_methods))  # ('GET', ... )
+        rv.methods = tuple(sorted(methods))  # ('GET', ... )
         rv.methods_map = dict(methods_map)  # { 'GET': {'get': _MethodViewInfo } }
         return rv
 

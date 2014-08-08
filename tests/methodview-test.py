@@ -49,6 +49,15 @@ class RestView(RestfulView):
     def custom(self, id):
         return ':)'
 
+    @methodview('CUSTOM2', ifset='id')
+    def custom2(self, id):
+        return ':))'
+
+
+class RestViewSubclass(RestView):
+
+    custom2 = None
+
 
 
 
@@ -59,7 +68,7 @@ class ViewsTest(unittest.TestCase):
         app.debug = app.testing = True
 
         CrudView.route_as_view(app, 'user', ('/user/', '/user/<int:id>'))
-        RestView.route_as_view(app, 'rest', ('/api/', '/api/<int:id>'))
+        RestViewSubclass.route_as_view(app, 'rest', ('/api/', '/api/<int:id>'))  # subclass should work as well
 
         self.app = app
 
@@ -104,14 +113,16 @@ class ViewsTest(unittest.TestCase):
         self._testRequest('GET', '/api/', 200, [1, 2, 3])
         self._testRequest('PUT', '/api/', 200, 'ok')
 
-        self._testRequest('GET',    '/api/999', 200, 999)
-        self._testRequest('POST',   '/api/999', 200, 're')
-        self._testRequest('PATCH',  '/api/999', 200, 'up')
-        self._testRequest('DELETE', '/api/999', 200, 'del')
-        self._testRequest('CUSTOM', '/api/999', 200, ':)')
+        self._testRequest('GET',     '/api/999', 200, 999)
+        self._testRequest('POST',    '/api/999', 200, 're')
+        self._testRequest('PATCH',   '/api/999', 200, 'up')
+        self._testRequest('DELETE',  '/api/999', 200, 'del')
+        self._testRequest('CUSTOM',  '/api/999', 200, ':)')
+        self._testRequest('CUSTOM2', '/api/999', 405)  # it was overridden by `None`
 
-        self._testRequest('POST',   '/api/', 405)
-        self._testRequest('PATCH',  '/api/', 405)
-        self._testRequest('DELETE', '/api/', 405)
-        self._testRequest('CUSTOM', '/api/', 405)
-        self._testRequest('PUT', '/api/999', 405)
+        self._testRequest('PUT',     '/api/999', 405)
+        self._testRequest('POST',    '/api/', 405)
+        self._testRequest('PATCH',   '/api/', 405)
+        self._testRequest('DELETE',  '/api/', 405)
+        self._testRequest('CUSTOM',  '/api/', 405)
+        self._testRequest('CUSTOM2', '/api/', 405)
