@@ -258,10 +258,10 @@ automatically decorates some special methods with `@methodview`.
 | View method | HTTP method | URL     |
 |-------------|-------------|---------|
 | list()      | GET         | `/`     |
-| create()    | PUT         | `/`     |
+| create()    | POST        | `/`     |
 | get()       | GET         | `/<pk>` |
-| replace()   | POST        | `/<pk>` |
-| update()    | PATCH       | `/<pk>` |
+| replace()   | PUT         | `/<pk>` |
+| update()    | POST        | `/<pk>` |
 | delete()    | DELETE      | `/<pk>` |
 
 By subclassing `RestfulView` and implementing some of these methods, 

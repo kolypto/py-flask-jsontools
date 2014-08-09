@@ -18,7 +18,7 @@ class CrudView(MethodView):
 
     @stupid
     @methodview('GET', ifnset=('id',))
-    def index(self):  # listing
+    def list(self):  # listing
         return [1, 2, 3]
 
     @methodview('GET', ifset='id')
@@ -91,8 +91,8 @@ class ViewsTest(unittest.TestCase):
 
     def test_method_view(self):
         """ Test MethodView(), low-level testing """
-        self.assertTrue(CrudView.index._methodview.matches('GET', {'a'}))
-        self.assertFalse(CrudView.index._methodview.matches('GET', {'id', 'a'}))
+        self.assertTrue(CrudView.list._methodview.matches('GET', {'a'}))
+        self.assertFalse(CrudView.list._methodview.matches('GET', {'id', 'a'}))
         self.assertTrue(CrudView.get._methodview.matches('GET', {'id', 'a'}))
         self.assertFalse(CrudView.get._methodview.matches('GET', {'a'}))
         self.assertTrue(CrudView.custom._methodview.matches('CUSTOM', {'id', 'a'}))
@@ -110,17 +110,17 @@ class ViewsTest(unittest.TestCase):
     def test_restful_view_requests(self):
         """ Test RestfulView with real requests """
         self._testRequest('GET', '/api/', 200, [1, 2, 3])
-        self._testRequest('PUT', '/api/', 200, 'ok')
+        self._testRequest('POST', '/api/', 200, 'ok')
 
         self._testRequest('GET',     '/api/999', 200, 999)
-        self._testRequest('POST',    '/api/999', 200, 're')
-        self._testRequest('PATCH',   '/api/999', 200, 'up')
+        self._testRequest('PUT',    '/api/999', 200, 're')
+        self._testRequest('POST',   '/api/999', 200, 'up')
         self._testRequest('DELETE',  '/api/999', 200, 'del')
         self._testRequest('CUSTOM',  '/api/999', 200, ':)')
         self._testRequest('CUSTOM2', '/api/999', 405)  # it was overridden by `None`
 
-        self._testRequest('PUT',     '/api/999', 405)
-        self._testRequest('POST',    '/api/', 405)
+        self._testRequest('PATCH',     '/api/999', 405)
+        self._testRequest('PUT',    '/api/', 405)
         self._testRequest('PATCH',   '/api/', 405)
         self._testRequest('DELETE',  '/api/', 405)
         self._testRequest('CUSTOM',  '/api/', 405)

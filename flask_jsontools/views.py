@@ -99,6 +99,7 @@ class MethodViewType(type):
         # Finish
         cls.methods = tuple(sorted(methods_map.keys()))  # ('GET', ... )
         cls.methods_map = dict(methods_map)  # { 'GET': {'get': _MethodViewInfo } }
+        super(MethodViewType, cls).__init__(name, bases, d)
 
 
 class MethodView(with_metaclass(MethodViewType, View)):
@@ -153,11 +154,11 @@ class RestfulViewType(MethodViewType):
         # view-name: (needs-primary-key, http-method)
         # Collection methods
         'list':    (False, 'GET'),
-        'create':  (False, 'PUT'),
+        'create':  (False, 'POST'),
         # Item methods
         'get':     (True,  'GET'),
-        'replace': (True,  'POST'),
-        'update':  (True,  'PATCH'),
+        'replace': (True,  'PUT'),
+        'update':  (True,  'POST'),
         'delete':  (True,  'DELETE'),
     }
 
@@ -186,20 +187,19 @@ class RestfulView(with_metaclass(RestfulViewType, MethodView)):
     """ Method View that automatically defines the following methods:
 
         Collection:
-            GET /   -> list()
-            PUT /   -> create()
+            GET /    -> list()
+            POST /   -> create()
         Individual item:
-            GET /<pk>    -> get()
-            POST /<pk>   -> replace()
-            PATCH /<pk>  -> update()
-            DELETE /<pk> -> delete()
+            GET /<pk>     -> get()
+            PUT /<pk>     -> replace()
+            POST /<pk>    -> update()
+            DELETE /<pk>  -> delete()
 
         You just need to specify PK fields
     """
 
     #: List of route parameters used as a primary key.
     #: If specified -- then we're working with an individual entry, and if not -- with the whole collection
-    #: HTTP methods mostly do not intersect, but 'GET' is special here
     primary_key = ()
 
 
