@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 setup(
     # http://pythonhosted.org/setuptools/setuptools.html
     name='flask_jsontools',
-    version='0.1.0-0',
+    version='0.1.0-1',
     author='Mark Vartanyan',
     author_email='kolypto@gmail.com',
 
@@ -24,7 +24,7 @@ setup(
         'flask >= 0.10.1',
     ],
     extras_require={
-        '_tests': ['nose', 'asynctools'],
+        '_dev': ['wheel', 'nose', 'asynctools'],
     },
     include_package_data=True,
     test_suite='nose.collector',
