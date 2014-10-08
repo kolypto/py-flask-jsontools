@@ -4,11 +4,6 @@ from flask import current_app, request, Response, json
 class JsonResponse(Response):
     """ Response from a JSON API view """
 
-    @staticmethod
-    def _lazy_json(data, indent=None): # CHECKME: This hack prevents Flask from providing the correct 'Content-Length' header. is it ok?
-        """ Lazy iterable: jsonify() only when iterated """
-        yield json.dumps(data, indent=indent)
-
     def __init__(self, response, status=None, headers=None, **kwargs):
         """ Init a JSON response
         :param response: Response data
@@ -29,7 +24,7 @@ class JsonResponse(Response):
 
         # Init super
         super(JsonResponse, self).__init__(
-            self._lazy_json(self._response_data, indent=indent),
+            json.dumps(self._response_data, indent=indent),
             headers=headers, status=status, mimetype='application/json',
             direct_passthrough=True, **kwargs)
 

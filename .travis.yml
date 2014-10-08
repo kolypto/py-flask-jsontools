@@ -4,6 +4,6 @@ python:
 #  - "3.3"
 
 install:
-  - "pip install -e '.[_dev]'"
+  - "pip install -r requirements.txt -e ."
 
 script: make test
