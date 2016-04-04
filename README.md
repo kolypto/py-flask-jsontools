@@ -155,7 +155,7 @@ class ApiJSONEncoder(DynamicJSONEncoder):
             return list(o)
         
         # Fallback
-        return super(DynamicJSONEncoder, self).default(o)
+        return super(ApiJSONEncoder, self).default(o)
 ```
 
 Now, just install the encoder to your Flask:
