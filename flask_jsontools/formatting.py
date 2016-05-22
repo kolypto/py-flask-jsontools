@@ -103,11 +103,18 @@ class JsonSerializableBase(object):
         # (which is usually removed at the step 1).
         keys |= include
         
-        # 4. For deleted objects, remove all relationships, since they may
-        # not be valid anymore. Otherwise an attempt of reading such
-        # relationship would cause a tricky bug.
-        if ins.deleted:
+        # 4. For objects in `deleted` or `detached` state, remove all
+        # relationships and lazy-loaded attributes, because they require
+        # refreshing data from the DB, but this cannot be done in these states.
+        # That is:
+        #  - if the object is deleted, you can't refresh data from the DB
+        #    because there is no data in the DB, everything is deleted
+        #  - if the object is detached, then there is no DB session associated
+        #    with the object, so you don't have a DB connection to send a query
+        # So in both cases you get an error if you try to read such attributes.
+        if ins.deleted or ins.detached: 
             keys -= relationships
+            keys -= unloaded
         
         # 5. Delete all explicitly black-listed keys.
         # That should be done last, since that may be used to hide some
