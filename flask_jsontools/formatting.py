@@ -1,4 +1,4 @@
-from json import JSONEncoder
+from flask.json import JSONEncoder
 
 
 class DynamicJSONEncoder(JSONEncoder):
