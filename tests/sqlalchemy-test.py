@@ -3,6 +3,8 @@ import datetime
 import json
 from flask import Flask, jsonify
 from flask_jsontools import (
+    jsonapi,
+    JsonResponse,
     FlaskJsonClient,
     JsonSerializableBase,
     DynamicJSONEncoder
@@ -24,24 +26,12 @@ from sqlalchemy import (
 )
 
 
-class ApiJSONEncoder(DynamicJSONEncoder):
-    def default(self, o):
-        # Custom formats
-        if isinstance(o, datetime.datetime):
-            return o.isoformat(' ')
-        if isinstance(o, datetime.date):
-            return o.isoformat()
-        if isinstance(o, set):
-            return list(o)
-        return super(DynamicJSONEncoder, self).default(o)
-
-
 Base = declarative_base(cls=(JsonSerializableBase,))
 
 
 class Person(Base):
     __tablename__ = 'person'
-    __excluded_keys__ = ['id', 'birth']
+    _json_exclude = ['id', 'birth']
     id = Column(Integer, primary_key=True)
     name = Column(String(256))
     birth = Column(DateTime)
@@ -54,26 +44,42 @@ class Person(Base):
 class ModelTest(unittest.TestCase):
 
     def setUp(self):
-        #config
-        self.app = Flask(__name__)
-        #self.json_encoder = ApiJSONEncoder
+        #config flask
+        self.app = app = Flask(__name__)
+        self.json_encoder = DynamicJSONEncoder
         self.app.test_client_class = FlaskJsonClient
         self.app.debug = self.app.testing = True
 
-        #app.
-
+        #config sqlalchemy
         self.engine = create_engine('sqlite://')
         Session = sessionmaker(bind=self.engine)
         self.session = Session()
         Base.metadata.create_all(self.engine)
 
-    def test_model(self):
-        person = Person('oman')
-        self.session.add(person)
+        #add some data
+        self.session.add(Person('oman'))
+        self.session.add(Person('twoman'))
         self.session.commit()
-        rs = self.session.query(Person).one()
-        print(rs.as_dict())
 
-        with self.app.test_request_context():
-            #return jsonify(persons=[])
-            print( jsonify(dict(json_list = rs.as_dict())) )
+        # Views
+        @app.route('/person', methods=['GET'])
+        @jsonapi
+        def list_persons():
+            return json.dumps(self.session.query(Person).first(), cls=DynamicJSONEncoder)
+
+
+    def test_model(self):
+
+        rs_first = self.session.query(Person).first()
+        x = json.dumps(rs_first, cls=DynamicJSONEncoder)
+        self.assertSequenceEqual(x, '{"name": "oman"}')
+
+        rs_all = self.session.query(Person).all()
+        y = json.dumps(rs_all, cls=DynamicJSONEncoder)
+        self.assertSequenceEqual(y, '[{"name": "oman"}, {"name": "twoman"}]')
+
+    def test_request(self):
+        with self.app.test_client() as c:
+            rv = c.get('/person')
+            self.assertEqual(rv.status_code, 200)
+            self.assertIsInstance(rv, JsonResponse)
