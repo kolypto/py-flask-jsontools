@@ -3,6 +3,10 @@ from collections import defaultdict
 from flask.views import View, with_metaclass
 from flask import request
 from werkzeug.exceptions import MethodNotAllowed
+try:
+        basestring
+except NameError:
+        basestring = str
 
 
 def methodview(methods=(), ifnset=None, ifset=None):

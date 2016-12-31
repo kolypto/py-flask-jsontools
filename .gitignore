@@ -9,6 +9,7 @@
 # ===[ OTHER ]=== #
 
 # IDE Projects
+.env
 .idea
 .nbproject
 .project
@@ -22,6 +23,8 @@
 *.kate-swp
 *.DS_Store
 Thumbs.db
+.cache/
+.pytest.restart
 
 # Utils
 .sass-cache/
