@@ -1,13 +1,13 @@
 import unittest
 import datetime
-import json
-from flask import Flask, jsonify
+from flask import Flask, jsonify, json
 from flask_jsontools import (
     jsonapi,
     JsonResponse,
     FlaskJsonClient,
     JsonSerializableBase,
-    DynamicJSONEncoder
+    DynamicJSONEncoder,
+    SqlAlchemyResponse
 )
 from sqlalchemy.ext.serializer import loads, dumps
 from sqlalchemy.orm import sessionmaker
@@ -24,6 +24,7 @@ from sqlalchemy import (
         SmallInteger,
         PrimaryKeyConstraint
 )
+
 
 
 Base = declarative_base(cls=(JsonSerializableBase,))
@@ -46,7 +47,7 @@ class ModelTest(unittest.TestCase):
     def setUp(self):
         #config flask
         self.app = app = Flask(__name__)
-        self.json_encoder = DynamicJSONEncoder
+        #self.json_encoder = DynamicJSONEncoder
         self.app.test_client_class = FlaskJsonClient
         self.app.debug = self.app.testing = True
 
@@ -63,10 +64,9 @@ class ModelTest(unittest.TestCase):
 
         # Views
         @app.route('/person', methods=['GET'])
-        @jsonapi
         def list_persons():
-            return json.dumps(self.session.query(Person).first(), cls=DynamicJSONEncoder)
-
+            rs = self.session.query(Person).all()
+            return SqlAlchemyResponse(rs)
 
     def test_model(self):
 

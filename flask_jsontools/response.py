@@ -75,3 +75,8 @@ def make_json_response(rv):
 
     # Data
     return JsonResponse(rv, status, headers)
+
+    def preprocess_response_data(self, response):
+        return json.dumps(response, cls=DynamicJSONEncoder)
+
+

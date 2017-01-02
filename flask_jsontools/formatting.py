@@ -1,5 +1,6 @@
 from flask.json import JSONEncoder
-
+from flask import json
+from .response import JsonResponse
 
 class DynamicJSONEncoder(JSONEncoder):
     """ JSON encoder for custom classes:
@@ -122,5 +123,10 @@ class JsonSerializableBase(object):
         keys -= exclude
 
         return { key: getattr(self, key)  for key in keys }
+
+class SqlAlchemyResponse(JsonResponse):
+    def preprocess_response_data(self, response):
+        return json.dumps(response, cls=DynamicJSONEncoder)
+
 
 #endregion
