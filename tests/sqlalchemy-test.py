@@ -1,4 +1,5 @@
 import unittest
+import json
 import datetime
 from flask import Flask, jsonify, json
 from flask_jsontools import (
@@ -63,10 +64,17 @@ class ModelTest(unittest.TestCase):
         self.session.commit()
 
         # Views
-        @app.route('/person', methods=['GET'])
-        def list_persons():
+        @app.route('/persons', methods=['GET'])
+        def persons():
             rs = self.session.query(Person).all()
             return SqlAlchemyResponse(rs)
+
+        @app.route('/person', methods=['GET'])
+        def person():
+            rs = self.session.query(Person).first()
+            return SqlAlchemyResponse(rs)
+
+
 
     def test_model(self):
 
@@ -78,8 +86,34 @@ class ModelTest(unittest.TestCase):
         y = json.dumps(rs_all, cls=DynamicJSONEncoder)
         self.assertSequenceEqual(y, '[{"name": "oman"}, {"name": "twoman"}]')
 
-    def test_request(self):
+    def test_persons(self):
+        with self.app.test_client() as c:
+            rv = c.get('/persons')
+            self.assertEqual(rv.status_code, 200)
+            self.assertIsInstance(rv, JsonResponse)
+
+            rv_json = rv.get_json()
+
+            print(type(rv_json), rv_json)
+
+            j = json.loads(rv_json)
+
+            print('loads', type(j), j[0]['name'])
+
+            self.assertEqual(j[0]['name'], 'oman')
+
+    def test_person(self):
         with self.app.test_client() as c:
             rv = c.get('/person')
             self.assertEqual(rv.status_code, 200)
             self.assertIsInstance(rv, JsonResponse)
+
+            rv_json = rv.get_json()
+
+            print(type(rv_json), rv_json)
+
+            j = json.loads(rv_json)
+
+            print('loads', type(j), j['name'])
+
+            self.assertEqual(j['name'], 'oman')

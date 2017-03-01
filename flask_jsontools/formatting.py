@@ -113,7 +113,7 @@ class JsonSerializableBase(object):
         #  - if the object is detached, then there is no DB session associated
         #    with the object, so you don't have a DB connection to send a query
         # So in both cases you get an error if you try to read such attributes.
-        if ins.deleted or ins.detached: 
+        if ins.deleted or ins.detached:
             keys -= relationships
             keys -= unloaded
 
