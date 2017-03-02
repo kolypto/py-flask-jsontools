@@ -23,6 +23,7 @@ setup(
     install_requires=[
         'flask >= 0.10.1',
     ],
+    tests_require=['sqlalchemy',],
     extras_require={},
     include_package_data=True,
     test_suite='nose.collector',
