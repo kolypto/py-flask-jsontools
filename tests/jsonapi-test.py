@@ -2,7 +2,7 @@ import unittest
 from flask import Flask, request, Response
 from werkzeug.exceptions import NotFound
 
-from flask.ext.jsontools import jsonapi, FlaskJsonClient, JsonResponse, make_json_response
+from flask_jsontools import jsonapi, FlaskJsonClient, JsonResponse, make_json_response
 
 
 class TestJsonApi(unittest.TestCase):
@@ -79,7 +79,7 @@ class TestJsonApi(unittest.TestCase):
             rv = c.get('/user/99')
             self.assertEqual(rv.status_code, 404)
             self.assertIsInstance(rv, Response)
-            self.assertIn('User #99 not found', rv.get_data())
+            self.assertIn('User #99 not found', str(rv.get_data()))
 
     def testUpdate(self):
         """ Test PATCH /user/<id>: custom error codes, exceptions """

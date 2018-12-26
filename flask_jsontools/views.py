@@ -1,8 +1,12 @@
+from __future__ import absolute_import
+from builtins import object
+
 import inspect
 from collections import defaultdict
 from flask.views import View, with_metaclass
 from flask import request
 from werkzeug.exceptions import MethodNotAllowed
+from future.utils import string_types
 
 
 def methodview(methods=(), ifnset=None, ifset=None):
@@ -40,11 +44,11 @@ class _MethodViewInfo(object):
         except AttributeError: return None
 
     def __init__(self, methods=None, ifnset=None, ifset=None):
-        if isinstance(methods, basestring):
+        if isinstance(methods, string_types):
             methods = (methods,)
-        if isinstance(ifnset, basestring):
+        if isinstance(ifnset, string_types):
             ifnset = (ifnset,)
-        if isinstance(ifset, basestring):
+        if isinstance(ifset, string_types):
             ifset = (ifset,)
 
         #: Method verbs, uppercase

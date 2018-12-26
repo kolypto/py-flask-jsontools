@@ -1,3 +1,6 @@
+from __future__ import absolute_import
+
+
 from functools import wraps, update_wrapper, partial
 
 from .response import normalize_response_value, make_json_response
