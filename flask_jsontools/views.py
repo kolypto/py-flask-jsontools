@@ -82,7 +82,6 @@ class MethodViewType(type):
         # Prepare
         methods = set(cls.methods or [])
         methods_map = defaultdict(dict)
-
         # Methods
         for view_name, func in inspect.getmembers(cls):
             # Collect methods decorated with methodview()
@@ -92,13 +91,6 @@ class MethodViewType(type):
                 for method in info.methods:
                     methods_map[method][view_name] = info
                     methods.add(method)
-            else:
-                # Not a view
-                # Remove it from inherited mappings (in case it became None, but was callable)
-                for _ in methods_map.values():
-                    methods_map.pop(view_name, None)
-                continue
-
 
         # Finish
         cls.methods = tuple(sorted(methods_map.keys()))  # ('GET', ... )

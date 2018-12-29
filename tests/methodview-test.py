@@ -52,12 +52,19 @@ class RestView(RestfulView):
     def custom2(self, id):
         return ':))'
 
+    @methodview('CUSTOM3', ifset='id')
+    def custom3(self, id):
+        return 'custom3'
+
 
 class RestViewSubclass(RestView):
     primary_key = ('id',)
     custom2 = None  # override
+    custom3 = None
 
-
+    @methodview('CUSTOM3', ifset='id')
+    def custom_new(self, id):
+        return 'new_custom_3'
 
 
 class ViewsTest(unittest.TestCase):
@@ -118,6 +125,7 @@ class ViewsTest(unittest.TestCase):
         self._testRequest('DELETE',  '/api/999', 200, 'del')
         self._testRequest('CUSTOM',  '/api/999', 200, ':)')
         self._testRequest('CUSTOM2', '/api/999', 405)  # it was overridden by `None`
+        self._testRequest('CUSTOM3', '/api/999', 200, 'new_custom_3')  # it was overridden
 
         self._testRequest('PATCH',     '/api/999', 405)
         self._testRequest('PUT',    '/api/', 405)
