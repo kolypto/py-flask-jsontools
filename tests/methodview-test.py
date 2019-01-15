@@ -1,8 +1,8 @@
 import unittest
 from functools import wraps
 from flask import Flask
-from flask.ext.jsontools import jsonapi, FlaskJsonClient
-from flask.ext.jsontools import MethodView, methodview, RestfulView
+from flask_jsontools import jsonapi, FlaskJsonClient
+from flask_jsontools import MethodView, methodview, RestfulView
 
 
 def stupid(f):
