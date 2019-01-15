@@ -2,7 +2,7 @@ import unittest
 from flask import Flask, request, Response
 from werkzeug.exceptions import NotFound
 
-from flask.ext.jsontools import jsonapi, FlaskJsonClient, JsonResponse, make_json_response
+from flask_jsontools import jsonapi, FlaskJsonClient, JsonResponse, make_json_response
 
 
 class TestJsonApi(unittest.TestCase):
