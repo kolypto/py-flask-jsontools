@@ -74,8 +74,8 @@ class JsonSerializableBase(object):
         Defines interfaces utilized by :cls:ApiJSONEncoder
     """
 
-    def __json__(self, exluded_keys=set()):
+    def __json__(self, excluded_keys=set()):
         return {name: getattr(self, name)
-                for name in get_entity_loaded_propnames(self) - exluded_keys}
+                for name in get_entity_loaded_propnames(self) - excluded_keys}
 
 #endregion
