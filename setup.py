@@ -13,7 +13,8 @@ setup(
     url='https://github.com/kolypto/py-flask-jsontools',
     license='BSD',
     description=__doc__,
-    long_description=open('README.rst').read(),
+    long_description=open('README.md').read(),
+    long_description_content_type='text/markdown',
     keywords=['flask', 'json'],
 
     packages=find_packages(),
@@ -36,7 +37,7 @@ setup(
         'Natural Language :: English',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 2',
-        #'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
 )
