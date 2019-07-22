@@ -73,10 +73,13 @@ class RestfulView_CompositePK(RestfulView):
 
     def list(self): return 'list'
     def create(self): return 'create'
-    def get(self, a, b, c): return dict(m='get', args=(a,b,c))
+    def get(self, a, b, c): return dict(m='get', args=(a, b, c))
     def replace(self, a, b, c): return dict(m='replace', args=(a,b,c))
     def update(self, a, b, c): return dict(m='update', args=(a,b,c))
     def delete(self, a, b, c): return dict(m='delete', args=(a,b,c))
+
+    @methodview('GET', ifset=('a',), ifnset=('b', 'c',))
+    def list_by(self, a, b=None, c=None): return dict(m='list_by', args=(a, b, c))
 
 class ViewsTest(unittest.TestCase):
     def setUp(self):
@@ -86,7 +89,11 @@ class ViewsTest(unittest.TestCase):
 
         CrudView.route_as_view(app, 'user', ('/user/', '/user/<int:id>'))
         RestViewSubclass.route_as_view(app, 'rest', ('/api/', '/api/<int:id>'))  # subclass should work as well
-        RestfulView_CompositePK.route_as_view(app, 'rest_cpk', ('/api_cpk/', '/api_cpk/<int:a>/<int:b>/<int:c>'))
+        RestfulView_CompositePK.route_as_view(app, 'rest_cpk', (
+            '/api_cpk/',
+            '/api_cpk/<int:a>',  # for listing
+            '/api_cpk/<int:a>/<int:b>/<int:c>',
+        ))
 
         self.app = app
 
@@ -154,3 +161,6 @@ class ViewsTest(unittest.TestCase):
         self._testRequest('PUT', '/api_cpk/1/2/3', 200, dict(m='replace', args=[1, 2, 3]))
         self._testRequest('POST', '/api_cpk/1/2/3', 200, dict(m='update', args=[1, 2, 3]))
         self._testRequest('DELETE', '/api_cpk/1/2/3', 200, dict(m='delete', args=[1, 2, 3]))
+
+        # List by partial PK
+        self._testRequest('GET', '/api_cpk/1', 200, dict(m='list_by', args=[1, None, None]))
