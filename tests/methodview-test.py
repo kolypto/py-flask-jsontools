@@ -67,6 +67,17 @@ class RestViewSubclass(RestView):
         return 'new_custom_3'
 
 
+class RestfulView_CompositePK(RestfulView):
+    primary_key = ('a', 'b', 'c')
+    decorators = (jsonapi,)
+
+    def list(self): return 'list'
+    def create(self): return 'create'
+    def get(self, a, b, c): return dict(m='get', args=(a,b,c))
+    def replace(self, a, b, c): return dict(m='replace', args=(a,b,c))
+    def update(self, a, b, c): return dict(m='update', args=(a,b,c))
+    def delete(self, a, b, c): return dict(m='delete', args=(a,b,c))
+
 class ViewsTest(unittest.TestCase):
     def setUp(self):
         app = Flask(__name__)
@@ -75,6 +86,7 @@ class ViewsTest(unittest.TestCase):
 
         CrudView.route_as_view(app, 'user', ('/user/', '/user/<int:id>'))
         RestViewSubclass.route_as_view(app, 'rest', ('/api/', '/api/<int:id>'))  # subclass should work as well
+        RestfulView_CompositePK.route_as_view(app, 'rest_cpk', ('/api_cpk/', '/api_cpk/<int:a>/<int:b>/<int:c>'))
 
         self.app = app
 
@@ -133,3 +145,12 @@ class ViewsTest(unittest.TestCase):
         self._testRequest('DELETE',  '/api/', 405)
         self._testRequest('CUSTOM',  '/api/', 405)
         self._testRequest('CUSTOM2', '/api/', 405)
+
+    def test_restfulview_with_composite_primary_key(self):
+        self._testRequest('GET', '/api_cpk/', 200, 'list')
+        self._testRequest('POST', '/api_cpk/', 200, 'create')
+
+        self._testRequest('GET', '/api_cpk/1/2/3', 200, dict(m='get', args=[1, 2, 3]))
+        self._testRequest('PUT', '/api_cpk/1/2/3', 200, dict(m='replace', args=[1, 2, 3]))
+        self._testRequest('POST', '/api_cpk/1/2/3', 200, dict(m='update', args=[1, 2, 3]))
+        self._testRequest('DELETE', '/api_cpk/1/2/3', 200, dict(m='delete', args=[1, 2, 3]))
