@@ -81,6 +81,17 @@ class RestfulView_CompositePK(RestfulView):
     @methodview('GET', ifset=('a',), ifnset=('b', 'c',))
     def list_by(self, a, b=None, c=None): return dict(m='list_by', args=(a, b, c))
 
+
+class RestfulView_Upsert(RestfulView):
+    primary_key = ('id',)
+    decorators = (jsonapi,)
+
+    def upsert(self, id=None):
+        return 'upsert({id})'.format(id=id)
+
+    create = upsert
+    update = upsert
+
 class ViewsTest(unittest.TestCase):
     def setUp(self):
         app = Flask(__name__)
@@ -94,6 +105,7 @@ class ViewsTest(unittest.TestCase):
             '/api_cpk/<int:a>',  # for listing
             '/api_cpk/<int:a>/<int:b>/<int:c>',
         ))
+        RestfulView_Upsert.route_as_view(app, 'upsert', ('/upsert/', '/upsert/<int:id>'))
 
         self.app = app
 
@@ -164,3 +176,8 @@ class ViewsTest(unittest.TestCase):
 
         # List by partial PK
         self._testRequest('GET', '/api_cpk/1', 200, dict(m='list_by', args=[1, None, None]))
+
+    def test_restful_view_upsert(self):
+        """ Test RestfulView with upsert """
+        self._testRequest('POST', '/upsert/', 200, 'upsert(None)')
+        self._testRequest('POST', '/upsert/1', 200, 'upsert(1)')

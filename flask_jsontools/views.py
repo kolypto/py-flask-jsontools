@@ -29,13 +29,15 @@ class _MethodViewInfo(object):
 
     def decorator(self, func):
         """ Wrapper function to decorate a function """
-        if inspect.isfunction(func):
-            func._methodview = self
-        elif inspect.ismethod(func):
-            func.__func__._methodview = self
-        else:
-            raise AssertionError('Can only decorate function and methods, {} given'.format(func))
-        return func
+        # This wrapper seems useless, but in fact is serves the purpose
+        # of being a clean namespace for setting custom attributes
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+
+        # Put the sign
+        wrapper._methodview = self
+
+        return wrapper
 
     @classmethod
     def get_info(cls, func):
@@ -74,6 +76,13 @@ class _MethodViewInfo(object):
                (self.ifnset  is None or self.ifnset.isdisjoint(params)) and \
                (self.methods is None or verb in self.methods)
 
+    def __repr__(self):
+        return '<{cls}: methods={methods} ifset={ifset} ifnset={ifnset}>'.format(
+            cls=self.__class__.__name__,
+            methods=set(self.methods),
+            ifset=set(self.ifset) if self.ifset else '-',
+            ifnset=set(self.ifnset) if self.ifnset else '-',
+        )
 
 class MethodViewType(type):
     """ Metaclass that collects methods decorated with @methodview """
@@ -162,9 +171,12 @@ class RestfulViewType(MethodViewType):
         pk = getattr(cls, 'primary_key', ())
         mcs = type(cls)
 
+        # Do not do anything with this class unless the primary key is set
         if pk:
             # Walk through known REST methods
-            for view_name, (needs_pk, method) in mcs.methods_map.items():
+            # list() is used to make sure we have a copy and do not re-wrap the same method twice
+            for view_name, (needs_pk, method) in list(mcs.methods_map.items()):
+                # Get the view func
                 view = getattr(cls, view_name, None)
                 if callable(view):  # method exists and is callable
                     # Automatically decorate it with @methodview() and conditions on PK
