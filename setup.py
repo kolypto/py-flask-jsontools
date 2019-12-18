@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 setup(
     # http://pythonhosted.org/setuptools/setuptools.html
     name='flask_jsontools',
-    version='0.1.6',
+    version='0.1.7',
     author='Mark Vartanyan',
     author_email='kolypto@gmail.com',
 

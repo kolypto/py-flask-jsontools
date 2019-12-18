@@ -3,6 +3,8 @@ from builtins import object
 
 import inspect
 from collections import defaultdict
+from functools import wraps
+
 from flask.views import View, with_metaclass
 from flask import request
 from werkzeug.exceptions import MethodNotAllowed
@@ -31,6 +33,7 @@ class _MethodViewInfo(object):
         """ Wrapper function to decorate a function """
         # This wrapper seems useless, but in fact is serves the purpose
         # of being a clean namespace for setting custom attributes
+        @wraps(func)
         def wrapper(*args, **kwargs):
             return func(*args, **kwargs)
 

@@ -127,6 +127,10 @@ class ViewsTest(unittest.TestCase):
             if expected_response is not None:
                 self.assertEqual(rv.get_json(), expected_response)
 
+    def test_method_view_wrapped(self):
+        # Correctly wrapped with @wraps
+        self.assertEqual(RestView.custom.__name__, 'custom')
+
     def test_method_view(self):
         """ Test MethodView(), low-level testing """
         self.assertTrue(CrudView.list._methodview.matches('GET', {'a'}))
