@@ -5,7 +5,8 @@ import inspect
 from collections import defaultdict
 from functools import wraps
 
-from flask.views import View, with_metaclass
+from flask.views import View
+from six import with_metaclass
 from flask import request
 from werkzeug.exceptions import MethodNotAllowed
 from future.utils import string_types
